@@ -1,5 +1,5 @@
 """
-patients.py - Enhanced Patient Directory and Profile Screen for ToothSync
+patients.py - Patient Directory and Detailed Profile Screen for ToothSync
 """
 
 import sys
@@ -63,15 +63,25 @@ class PatientsScreen(MDScreen):
                 padding=dp(12),
                 spacing=dp(4),
                 size_hint_y=None,
-                height=dp(110),
+                height=dp(115),
                 radius=[12, 12, 12, 12],
                 elevation=2,
                 line_color=(0.88, 0.88, 0.88, 1)
             )
 
             title_box = MDBoxLayout(orientation="horizontal", size_hint_y=None, height=dp(24))
-            name_lbl = MDLabel(text=p_name, font_style="Subtitle1", bold=True, size_hint_x=0.7)
-            id_lbl = MDLabel(text=f"ID: #{p_id}", font_style="Caption", theme_text_color="Hint", size_hint_x=0.3, halign="right")
+            avatar = MDIconButton(
+                icon="account",
+                theme_icon_color="Custom",
+                icon_color=(0.1, 0.45, 0.85, 1),
+                user_font_size="20sp",
+                size_hint_x=None,
+                width=dp(24),
+                pos_hint={"center_y": 0.5}
+            )
+            name_lbl = MDLabel(text=p_name, font_style="Subtitle1", bold=True, size_hint_x=0.7, pos_hint={"center_y": 0.5})
+            id_lbl = MDLabel(text=f"ID: #{p_id}", font_style="Caption", theme_text_color="Hint", size_hint_x=0.3, halign="right", pos_hint={"center_y": 0.5})
+            title_box.add_widget(avatar)
             title_box.add_widget(name_lbl)
             title_box.add_widget(id_lbl)
 
@@ -84,7 +94,7 @@ class PatientsScreen(MDScreen):
             )
 
             addr_lbl = MDLabel(
-                text=f"📍 {p_address or 'No address'}  |  Registered: {p_created or 'N/A'}",
+                text=f"📍 {p_address or 'No address registered'}  |  Registered: {p_created or 'N/A'}",
                 font_style="Overline",
                 theme_text_color="Hint",
                 size_hint_y=None,
@@ -92,22 +102,33 @@ class PatientsScreen(MDScreen):
             )
 
             # Action buttons row
-            btn_row = MDBoxLayout(orientation="horizontal", spacing=dp(8), size_hint_y=None, height=dp(30))
+            btn_row = MDBoxLayout(orientation="horizontal", spacing=dp(6), size_hint_y=None, height=dp(30))
             
             history_btn = MDRectangleFlatButton(
                 text="HISTORY",
                 font_style="Caption",
-                size_hint_x=0.5,
+                size_hint_x=0.35,
                 on_release=lambda x, pid=p_id, pname=p_name: self.show_patient_history(pid, pname)
             )
+            
+            book_btn = MDRaisedButton(
+                text="BOOK APPT",
+                font_style="Caption",
+                size_hint_x=0.45,
+                on_release=lambda x, pid=p_id, pname=p_name, pphone=p_phone: self.quick_book_patient(pid, pname, pphone)
+            )
+
             edit_btn = MDIconButton(
                 icon="account-edit-outline",
                 theme_icon_color="Custom",
                 icon_color=(0.1, 0.5, 0.9, 1),
+                user_font_size="18sp",
+                size_hint_x=0.2,
                 on_release=lambda x, prow=p: self.open_edit_dialog(prow)
             )
 
             btn_row.add_widget(history_btn)
+            btn_row.add_widget(book_btn)
             btn_row.add_widget(edit_btn)
 
             card.add_widget(title_box)
@@ -119,6 +140,15 @@ class PatientsScreen(MDScreen):
 
     def on_search(self, query):
         self.refresh_patient_list(query.strip())
+
+    def quick_book_patient(self, patient_id, patient_name, phone):
+        from kivy.app import App
+        app = App.get_running_app()
+        if hasattr(app, "booking_screen"):
+            app.booking_screen.selected_patient_id = patient_id
+            app.booking_screen.ids.patient_field.text = f"{patient_name} (#{patient_id})"
+            if hasattr(app, "bottom_nav"):
+                app.bottom_nav.switch_tab("tab_booking")
 
     def register_patient(self):
         name = self.ids.name_field.text.strip()
@@ -142,14 +172,14 @@ class PatientsScreen(MDScreen):
         if not history:
             text = f"No appointment history found for {patient_name}."
         else:
-            text = f"Appointments for {patient_name}:\n\n"
+            text = f"Appointment History for {patient_name}:\n\n"
             for h in history:
                 text += f"• {h[3]} at {h[4]} - {h[5]} [{h[7].upper()}]\n"
                 if h[6]:
                     text += f"  Notes: {h[6]}\n"
 
         self.dialog = MDDialog(
-            title=f"Patient History (#{patient_id})",
+            title=f"Patient Record (#{patient_id})",
             text=text,
             buttons=[MDFlatButton(text="CLOSE", on_release=lambda x: self.dialog.dismiss())]
         )
@@ -182,7 +212,7 @@ class PatientsScreen(MDScreen):
             self.refresh_patient_list()
 
         self.edit_dialog = MDDialog(
-            title=f"Edit Patient #{p_id}",
+            title=f"Edit Patient Record #{p_id}",
             type="custom",
             content_cls=box,
             buttons=[

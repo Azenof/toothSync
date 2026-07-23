@@ -1,3 +1,8 @@
+"""
+main.py - Main Entry Point for ToothSync Dental Management Mobile Application
+Integrated with Authentication Screen, Clinic Logo, and Screen Manager.
+"""
+
 import sys
 import os
 
@@ -22,16 +27,77 @@ from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
 from kivymd.uix.button import MDFloatingActionButton, MDRaisedButton, MDFlatButton, MDIconButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.fitimage import FitImage
 
 # Import local screens and database
 sys.path.insert(0, os.path.dirname(__file__))
 import database
+from screens.login import LoginScreen
 from screens.dashboard import DashboardScreen
 from screens.booking import BookingScreen
 from screens.patients import PatientsScreen
 
 KV_STRING = """
 #:import datetime datetime.datetime
+
+<LoginScreen>:
+    name: "login_screen"
+    MDBoxLayout:
+        orientation: "vertical"
+        padding: dp(24)
+        spacing: dp(16)
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+        # Clinic Logo Card Header
+        MDCard:
+            orientation: "vertical"
+            padding: dp(20)
+            spacing: dp(12)
+            size_hint_y: None
+            height: dp(390)
+            radius: [16, 16, 16, 16]
+            elevation: 3
+
+            FitImage:
+                source: "assets/logo.png"
+                size_hint: None, None
+                size: dp(90), dp(90)
+                pos_hint: {"center_x": 0.5}
+
+            MDLabel:
+                text: "ToothSync Dental Clinic"
+                font_style: "H5"
+                bold: True
+                halign: "center"
+                theme_text_color: "Primary"
+
+            MDLabel:
+                text: "Doctor & Administrative Portal"
+                font_style: "Caption"
+                halign: "center"
+                theme_text_color: "Secondary"
+
+            MDTextField:
+                id: user_field
+                hint_text: "Doctor ID / Username"
+                text: "doctor"
+                icon_right: "account-doctor"
+
+            MDTextField:
+                id: pass_field
+                hint_text: "Password"
+                text: "1234"
+                password: True
+                icon_right: "key-variant"
+
+            MDRaisedButton:
+                text: "LOGIN TO CLINIC"
+                icon: "login"
+                font_style: "Button"
+                size_hint_x: 1
+                height: dp(48)
+                on_release: root.perform_login(user_field.text, pass_field.text)
+
 
 <DashboardScreen>:
     name: "dashboard"
@@ -43,7 +109,7 @@ KV_STRING = """
         # Mobile Clinic Header Card
         MDCard:
             orientation: "horizontal"
-            padding: dp(12)
+            padding: dp(10)
             spacing: dp(10)
             size_hint_y: None
             height: dp(68)
@@ -51,18 +117,18 @@ KV_STRING = """
             elevation: 2
             md_bg_color: 0.1, 0.45, 0.85, 1
 
-            MDIconButton:
-                icon: "tooth-outline"
-                theme_icon_color: "Custom"
-                icon_color: 1, 1, 1, 1
-                user_font_size: "26sp"
+            FitImage:
+                source: "assets/logo.png"
+                size_hint: None, None
+                size: dp(46), dp(46)
+                radius: [23, 23, 23, 23]
                 pos_hint: {"center_y": 0.5}
 
             MDBoxLayout:
                 orientation: "vertical"
                 pos_hint: {"center_y": 0.5}
                 MDLabel:
-                    text: "👋 Good Morning!"
+                    text: "Good Morning, Doctor 👋"
                     font_style: "Caption"
                     theme_text_color: "Custom"
                     text_color: 0.9, 0.95, 1, 0.9
@@ -423,8 +489,16 @@ class ToothSyncApp(MDApp):
         # Load KV layout string
         Builder.load_string(KV_STRING)
 
-        # Root Bottom Navigation
-        bottom_nav = MDBottomNavigation()
+        # Root Screen Manager
+        self.root_manager = MDScreenManager()
+
+        # Login Screen
+        self.login_screen = LoginScreen()
+        self.root_manager.add_widget(self.login_screen)
+
+        # Main Clinic Workspace Screen with Bottom Navigation
+        main_workspace_screen = MDScreen(name="main_screen")
+        self.bottom_nav = MDBottomNavigation()
 
         # Dashboard Tab
         dash_item = MDBottomNavigationItem(
@@ -453,11 +527,14 @@ class ToothSyncApp(MDApp):
         self.patients_screen = PatientsScreen()
         patient_item.add_widget(self.patients_screen)
 
-        bottom_nav.add_widget(dash_item)
-        bottom_nav.add_widget(book_item)
-        bottom_nav.add_widget(patient_item)
+        self.bottom_nav.add_widget(dash_item)
+        self.bottom_nav.add_widget(book_item)
+        self.bottom_nav.add_widget(patient_item)
 
-        return bottom_nav
+        main_workspace_screen.add_widget(self.bottom_nav)
+        self.root_manager.add_widget(main_workspace_screen)
+
+        return self.root_manager
 
     def backup_database_action(self):
         try:
