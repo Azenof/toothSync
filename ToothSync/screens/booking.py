@@ -6,10 +6,11 @@ import sys
 import os
 from datetime import datetime
 
+from kivy.app import App
 from kivy.metrics import dp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDRaisedButton, MDFlatButton
+from kivymd.uix.button import MDRaisedButton, MDFlatButton, MDRectangleFlatButton
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.label import MDLabel
 from kivymd.uix.dialog import MDDialog
@@ -21,8 +22,8 @@ import database
 
 class BookingScreen(MDScreen):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
         self.today = datetime.now().strftime("%Y-%m-%d")
+        super().__init__(**kwargs)
         self.dialog = None
         self.patient_menu = None
         self.treatment_menu = None
@@ -36,22 +37,40 @@ class BookingScreen(MDScreen):
         """Build dropdown menus for Patient selection, Treatment, and Time slots."""
         # Patient Menu
         patients = database.get_patients()
-        patient_items = [
-            {
-                "text": f"{p[1]} ({p[2]})",
+        if not patients:
+            patient_items = [{
+                "text": "No patients found (Type name below)",
                 "viewclass": "OneLineListItem",
-                "on_release": lambda x=p: self.select_patient(x),
-            }
-            for p in patients
-        ]
-        self.patient_menu = MDDropdownMenu(
-            caller=self.ids.patient_field,
-            items=patient_items,
-            width_mult=4,
-        )
+                "on_release": lambda: self.patient_menu.dismiss(),
+            }]
+        else:
+            patient_items = [
+                {
+                    "text": f"{p[1]} (#{p[0]}) - {p[2]}",
+                    "viewclass": "OneLineListItem",
+                    "on_release": lambda x=p: self.select_patient(x),
+                }
+                for p in patients
+            ]
+        
+        if hasattr(self, "ids") and "patient_field" in self.ids:
+            self.patient_menu = MDDropdownMenu(
+                caller=self.ids.patient_field,
+                items=patient_items,
+                width_mult=4,
+            )
 
         # Treatment Menu
-        treatments = ["Checkup", "Cleaning", "Root Canal", "Fillings", "Extraction", "Teeth Whitening", "Crown / Bridge"]
+        treatments = [
+            "Checkup & Examination",
+            "Scaling & Cleaning",
+            "Root Canal Treatment",
+            "Dental Fillings",
+            "Tooth Extraction",
+            "Teeth Whitening",
+            "Crown & Bridge Installation",
+            "Orthodontic Consultation"
+        ]
         treatment_items = [
             {
                 "text": t,
@@ -60,11 +79,12 @@ class BookingScreen(MDScreen):
             }
             for t in treatments
         ]
-        self.treatment_menu = MDDropdownMenu(
-            caller=self.ids.treatment_field,
-            items=treatment_items,
-            width_mult=4,
-        )
+        if hasattr(self, "ids") and "treatment_field" in self.ids:
+            self.treatment_menu = MDDropdownMenu(
+                caller=self.ids.treatment_field,
+                items=treatment_items,
+                width_mult=4,
+            )
 
         # Time Menu
         times = ["09:00 AM", "10:00 AM", "11:00 AM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"]
@@ -76,11 +96,12 @@ class BookingScreen(MDScreen):
             }
             for tm in times
         ]
-        self.time_menu = MDDropdownMenu(
-            caller=self.ids.time_field,
-            items=time_items,
-            width_mult=4,
-        )
+        if hasattr(self, "ids") and "time_field" in self.ids:
+            self.time_menu = MDDropdownMenu(
+                caller=self.ids.time_field,
+                items=time_items,
+                width_mult=4,
+            )
 
     def open_patient_menu(self):
         self.setup_menus()
@@ -90,7 +111,7 @@ class BookingScreen(MDScreen):
     def select_patient(self, patient_row):
         # patient_row: (id, name, phone, email, address, created_at)
         self.selected_patient_id = patient_row[0]
-        self.ids.patient_field.text = f"{patient_row[1]} (ID: #{patient_row[0]})"
+        self.ids.patient_field.text = f"{patient_row[1]} (#{patient_row[0]})"
         if self.patient_menu:
             self.patient_menu.dismiss()
 
@@ -104,6 +125,9 @@ class BookingScreen(MDScreen):
         if self.time_menu:
             self.time_menu.dismiss()
 
+    def set_today_date(self):
+        self.ids.date_field.text = datetime.now().strftime("%Y-%m-%d")
+
     def submit_booking(self):
         patient_str = self.ids.patient_field.text.strip()
         date_str = self.ids.date_field.text.strip()
@@ -111,8 +135,8 @@ class BookingScreen(MDScreen):
         treatment_str = self.ids.treatment_field.text.strip()
         notes_str = self.ids.notes_field.text.strip()
 
-        if not self.selected_patient_id and not patient_str:
-            self.show_dialog("Error", "Please select a patient.")
+        if not patient_str:
+            self.show_dialog("Error", "Please select or type a patient name.")
             return
 
         if not date_str:
@@ -120,7 +144,7 @@ class BookingScreen(MDScreen):
             return
 
         if not time_str:
-            self.show_dialog("Error", "Please select an appointment time.")
+            self.show_dialog("Error", "Please select an appointment time slot.")
             return
 
         if not treatment_str:
@@ -134,7 +158,7 @@ class BookingScreen(MDScreen):
             if matched:
                 self.selected_patient_id = matched[0][0]
             else:
-                # Add quick new patient
+                # Add new patient
                 self.selected_patient_id = database.add_patient(patient_str, "(555) 000-0000")
 
         # Insert appointment into database
@@ -146,7 +170,11 @@ class BookingScreen(MDScreen):
             notes=notes_str
         )
 
-        self.show_dialog("Success", "Appointment booked successfully!", success=True)
+        app = App.get_running_app()
+        if hasattr(app, "dashboard_screen"):
+            app.dashboard_screen.refresh_dashboard()
+
+        self.show_dialog("Success", f"Appointment successfully scheduled for {patient_str} on {date_str} at {time_str}!", success=True)
 
     def show_dialog(self, title, text, success=False):
         def on_close(x):
@@ -171,5 +199,5 @@ class BookingScreen(MDScreen):
         self.ids.patient_field.text = ""
         self.ids.date_field.text = datetime.now().strftime("%Y-%m-%d")
         self.ids.time_field.text = "09:00 AM"
-        self.ids.treatment_field.text = "Checkup"
+        self.ids.treatment_field.text = "Checkup & Examination"
         self.ids.notes_field.text = ""
