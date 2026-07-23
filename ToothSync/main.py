@@ -1,9 +1,6 @@
-"""
-main.py - Main Entry Point for ToothSync Dental Clinic KivyMD Application
-"""
-
 import sys
 import os
+
 from unittest.mock import MagicMock
 
 # Fix for KivyMD 1.2.0 compatibility on Python 3.14 environment
@@ -23,8 +20,8 @@ from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
+from kivymd.uix.button import MDFloatingActionButton, MDRaisedButton, MDFlatButton, MDIconButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDRaisedButton, MDFlatButton, MDIconButton
 
 # Import local screens and database
 sys.path.insert(0, os.path.dirname(__file__))
@@ -43,44 +40,51 @@ KV_STRING = """
         padding: dp(14)
         spacing: dp(10)
 
-        # Clinic Header Banner Card
+        # Mobile Clinic Header Card
         MDCard:
             orientation: "horizontal"
             padding: dp(12)
-            spacing: dp(12)
+            spacing: dp(10)
             size_hint_y: None
-            height: dp(64)
-            radius: [12, 12, 12, 12]
+            height: dp(68)
+            radius: [14, 14, 14, 14]
             elevation: 2
-            md_bg_color: 0.05, 0.45, 0.55, 1
+            md_bg_color: 0.1, 0.45, 0.85, 1
 
             MDIconButton:
                 icon: "tooth-outline"
                 theme_icon_color: "Custom"
                 icon_color: 1, 1, 1, 1
+                user_font_size: "26sp"
                 pos_hint: {"center_y": 0.5}
 
             MDBoxLayout:
                 orientation: "vertical"
                 pos_hint: {"center_y": 0.5}
                 MDLabel:
-                    text: "ToothSync Dental Care Clinic"
+                    text: "👋 Good Morning!"
+                    font_style: "Caption"
+                    theme_text_color: "Custom"
+                    text_color: 0.9, 0.95, 1, 0.9
+                MDLabel:
+                    text: "ToothSync Dental Clinic"
                     font_style: "Subtitle1"
                     bold: True
                     theme_text_color: "Custom"
                     text_color: 1, 1, 1, 1
                 MDLabel:
-                    text: "Dr. Alex Vance, D.D.S.  |  Dental Surgeon"
-                    font_style: "Caption"
+                    text: "Dr. Alex Vance, D.D.S."
+                    font_style: "Overline"
                     theme_text_color: "Custom"
-                    text_color: 0.9, 0.95, 1, 1
+                    text_color: 0.95, 0.98, 1, 0.85
 
             MDLabel:
                 id: date_label
                 text: "Today"
                 font_style: "Caption"
+                bold: True
                 theme_text_color: "Custom"
-                text_color: 1, 1, 1, 0.9
+                text_color: 1, 1, 1, 0.95
                 halign: "right"
                 pos_hint: {"center_y": 0.5}
 
@@ -89,112 +93,118 @@ KV_STRING = """
             orientation: "horizontal"
             spacing: dp(8)
             size_hint_y: None
-            height: dp(36)
+            height: dp(34)
 
             MDRectangleFlatButton:
                 text: "TODAY"
                 font_style: "Caption"
+                line_color: 0.1, 0.45, 0.85, 1
+                text_color: 0.1, 0.45, 0.85, 1
                 on_release: root.set_filter("today")
 
             MDRectangleFlatButton:
                 text: "UPCOMING"
                 font_style: "Caption"
+                line_color: 0.4, 0.1, 0.7, 1
+                text_color: 0.4, 0.1, 0.7, 1
                 on_release: root.set_filter("upcoming")
 
             MDRectangleFlatButton:
-                text: "ALL HISTORY"
+                text: "HISTORY"
                 font_style: "Caption"
+                line_color: 0.3, 0.3, 0.3, 1
+                text_color: 0.3, 0.3, 0.3, 1
                 on_release: root.set_filter("all")
 
-        # Statistics Cards Grid (4 columns)
+        # Mobile 2x2 Statistics Grid
         MDGridLayout:
-            cols: 4
-            spacing: dp(8)
+            cols: 2
+            spacing: dp(10)
             size_hint_y: None
-            height: dp(68)
+            height: dp(130)
 
             MDCard:
                 orientation: "vertical"
-                padding: dp(6)
-                radius: [8, 8, 8, 8]
-                elevation: 1
-                md_bg_color: 0.9, 0.95, 1, 1
+                padding: dp(8)
+                radius: [12, 12, 12, 12]
+                elevation: 2
+                md_bg_color: 0.9, 0.94, 1, 1
                 MDLabel:
                     id: stat_today_label
                     text: "0"
-                    font_style: "H6"
+                    font_style: "H5"
                     bold: True
                     halign: "center"
                     theme_text_color: "Primary"
                 MDLabel:
-                    text: "Today"
-                    font_style: "Overline"
+                    text: "Today's Appointments"
+                    font_style: "Caption"
                     halign: "center"
                     theme_text_color: "Secondary"
 
             MDCard:
                 orientation: "vertical"
-                padding: dp(6)
-                radius: [8, 8, 8, 8]
-                elevation: 1
-                md_bg_color: 0.94, 0.9, 1, 1
+                padding: dp(8)
+                radius: [12, 12, 12, 12]
+                elevation: 2
+                md_bg_color: 0.95, 0.9, 1, 1
                 MDLabel:
                     id: stat_upcoming_label
                     text: "0"
-                    font_style: "H6"
+                    font_style: "H5"
                     bold: True
                     halign: "center"
                     theme_text_color: "Custom"
                     text_color: 0.4, 0.1, 0.7, 1
                 MDLabel:
-                    text: "Upcoming"
-                    font_style: "Overline"
+                    text: "Upcoming Appointments"
+                    font_style: "Caption"
                     halign: "center"
                     theme_text_color: "Secondary"
 
             MDCard:
                 orientation: "vertical"
-                padding: dp(6)
-                radius: [8, 8, 8, 8]
-                elevation: 1
-                md_bg_color: 0.9, 1, 0.93, 1
+                padding: dp(8)
+                radius: [12, 12, 12, 12]
+                elevation: 2
+                md_bg_color: 0.9, 0.98, 0.93, 1
                 MDLabel:
                     id: stat_completed_label
                     text: "0"
-                    font_style: "H6"
+                    font_style: "H5"
                     bold: True
                     halign: "center"
                     theme_text_color: "Custom"
-                    text_color: 0.1, 0.7, 0.3, 1
+                    text_color: 0.1, 0.65, 0.3, 1
                 MDLabel:
-                    text: "Completed"
-                    font_style: "Overline"
+                    text: "Completed Patients"
+                    font_style: "Caption"
                     halign: "center"
                     theme_text_color: "Secondary"
 
             MDCard:
                 orientation: "vertical"
-                padding: dp(6)
-                radius: [8, 8, 8, 8]
-                elevation: 1
+                padding: dp(8)
+                radius: [12, 12, 12, 12]
+                elevation: 2
                 md_bg_color: 1, 0.92, 0.92, 1
                 MDLabel:
                     id: stat_cancelled_label
                     text: "0"
-                    font_style: "H6"
+                    font_style: "H5"
                     bold: True
                     halign: "center"
                     theme_text_color: "Custom"
                     text_color: 0.85, 0.2, 0.2, 1
                 MDLabel:
-                    text: "Cancelled"
-                    font_style: "Overline"
+                    text: "Cancelled Appointments"
+                    font_style: "Caption"
                     halign: "center"
                     theme_text_color: "Secondary"
 
         MDLabel:
             id: filter_title_label
-            text: "Today's Appointments"
+            text: "Today's Schedule"
             font_style: "Subtitle1"
             bold: True
             size_hint_y: None
@@ -205,7 +215,7 @@ KV_STRING = """
             MDBoxLayout:
                 id: appointments_container
                 orientation: "vertical"
-                spacing: dp(8)
+                spacing: dp(10)
                 size_hint_y: None
                 height: self.minimum_height
 
@@ -215,13 +225,13 @@ KV_STRING = """
     MDScrollView:
         MDBoxLayout:
             orientation: "vertical"
-            padding: dp(18)
+            padding: dp(16)
             spacing: dp(12)
             size_hint_y: None
             height: self.minimum_height
 
             MDLabel:
-                text: "Schedule Dental Appointment"
+                text: "Book Appointment"
                 font_style: "H5"
                 bold: True
                 theme_text_color: "Primary"
@@ -233,34 +243,50 @@ KV_STRING = """
                 padding: dp(14)
                 spacing: dp(12)
                 size_hint_y: None
-                height: dp(400)
-                radius: [12, 12, 12, 12]
+                height: dp(410)
+                radius: [14, 14, 14, 14]
                 elevation: 2
+
+                MDLabel:
+                    text: "Patient Details"
+                    font_style: "Subtitle2"
+                    bold: True
+                    theme_text_color: "Primary"
+                    size_hint_y: None
+                    height: dp(20)
 
                 MDTextField:
                     id: patient_field
-                    hint_text: "Select Patient (or type new patient name)"
-                    helper_text: "Tap to view registered patient directory"
+                    hint_text: "Select patient or type full name"
+                    helper_text: "Tap to search registered patients"
                     helper_text_mode: "on_focus"
                     icon_right: "account-search"
                     on_focus: if self.focus: root.open_patient_menu()
+
+                MDLabel:
+                    text: "Appointment Details"
+                    font_style: "Subtitle2"
+                    bold: True
+                    theme_text_color: "Primary"
+                    size_hint_y: None
+                    height: dp(20)
 
                 MDBoxLayout:
                     orientation: "horizontal"
                     spacing: dp(8)
                     size_hint_y: None
-                    height: dp(56)
+                    height: dp(54)
 
                     MDTextField:
                         id: date_field
                         hint_text: "Date (YYYY-MM-DD)"
                         text: root.today
                         icon_right: "calendar"
-                        size_hint_x: 0.75
+                        size_hint_x: 0.72
 
                     MDRaisedButton:
                         text: "TODAY"
-                        size_hint_x: 0.25
+                        size_hint_x: 0.28
                         on_release: root.set_today_date()
 
                 MDTextField:
@@ -272,24 +298,24 @@ KV_STRING = """
 
                 MDTextField:
                     id: treatment_field
-                    hint_text: "Treatment Type"
+                    hint_text: "Treatment Procedure"
                     text: "Checkup & Examination"
                     icon_right: "tooth-outline"
                     on_focus: if self.focus: root.treatment_menu.open()
 
                 MDTextField:
                     id: notes_field
-                    hint_text: "Clinical Notes / Special Requests (Optional)"
+                    hint_text: "Clinical Notes / Remarks (Optional)"
                     multiline: True
-                    max_height: dp(80)
+                    max_height: dp(70)
                     icon_right: "note-text-outline"
 
                 MDRaisedButton:
-                    text: "SCHEDULE APPOINTMENT"
+                    text: "CONFIRM BOOKING"
                     icon: "calendar-check"
                     font_style: "Button"
                     size_hint_x: 1
-                    height: dp(46)
+                    height: dp(48)
                     on_release: root.submit_booking()
 
 
@@ -301,7 +327,7 @@ KV_STRING = """
         spacing: dp(10)
 
         MDLabel:
-            text: "Patient Directory & Records"
+            text: "Patient Directory"
             font_style: "H5"
             bold: True
             theme_text_color: "Primary"
@@ -317,14 +343,14 @@ KV_STRING = """
             height: dp(46)
             on_text: root.on_search(self.text)
 
-        # Quick Add Patient Card
+        # Quick Register Patient Card
         MDCard:
             orientation: "vertical"
             padding: dp(12)
             spacing: dp(6)
             size_hint_y: None
             height: dp(180)
-            radius: [10, 10, 10, 10]
+            radius: [12, 12, 12, 12]
             elevation: 2
 
             MDLabel:
@@ -366,7 +392,7 @@ KV_STRING = """
                 on_release: root.register_patient()
 
         MDLabel:
-            text: "Registered Patient Records"
+            text: "Registered Patients"
             font_style: "Subtitle1"
             bold: True
             size_hint_y: None
@@ -386,11 +412,12 @@ KV_STRING = """
 class ToothSyncApp(MDApp):
     def build(self):
         self.today = datetime.now().strftime("%Y-%m-%d")
-        self.title = "ToothSync Dental Management System"
-        self.theme_cls.primary_palette = "Teal"
+        self.title = "ToothSync Dental Clinic"
+        self.theme_cls.primary_palette = "Blue"
+        self.theme_cls.accent_palette = "Cyan"
         self.theme_cls.theme_style = "Light"
 
-        # Initialize SQLite database schema cleanly
+        # Initialize SQLite database schema
         database.create_database()
 
         # Load KV layout string

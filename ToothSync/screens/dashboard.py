@@ -1,6 +1,5 @@
 """
-dashboard.py - Enhanced Dashboard Screen for ToothSync KivyMD Application
-Features prominent time grouping and visual layout for dental clinic schedule.
+dashboard.py - Mobile-optimized Dashboard Screen for ToothSync KivyMD Application
 """
 
 import sys
@@ -44,13 +43,12 @@ class DashboardScreen(MDScreen):
         container = self.ids.appointments_container
         container.clear_widgets()
 
-        # Fetch datasets for stats
         today_appts = database.get_today_appointments()
         upcoming_appts = database.get_upcoming_appointments()
         all_appts = database.get_all_appointments()
 
-        # Update stats counter labels
-        self.ids.date_label.text = f"📅 {datetime.now().strftime('%A, %b %d, %Y')}"
+        # Update mobile stats counter labels
+        self.ids.date_label.text = datetime.now().strftime("%A, %b %d")
         self.ids.stat_today_label.text = str(len(today_appts))
         self.ids.stat_upcoming_label.text = str(len(upcoming_appts))
         self.ids.stat_completed_label.text = str(sum(1 for a in all_appts if a[7] == "completed"))
@@ -59,13 +57,13 @@ class DashboardScreen(MDScreen):
         # Select dataset based on active filter
         if self.current_filter == "today":
             appts = today_appts
-            self.ids.filter_title_label.text = f"Today's Schedule ({len(appts)} Appointments)"
+            self.ids.filter_title_label.text = f"Today's Schedule ({len(appts)})"
         elif self.current_filter == "upcoming":
             appts = upcoming_appts
-            self.ids.filter_title_label.text = f"Upcoming Schedule ({len(appts)} Appointments)"
+            self.ids.filter_title_label.text = f"Upcoming Schedule ({len(appts)})"
         else:
             appts = all_appts
-            self.ids.filter_title_label.text = f"Full Appointment History ({len(appts)} Total)"
+            self.ids.filter_title_label.text = f"Full History ({len(appts)})"
 
         if not appts:
             empty_card = MDCard(
@@ -73,11 +71,11 @@ class DashboardScreen(MDScreen):
                 padding=dp(20),
                 size_hint_y=None,
                 height=dp(85),
-                radius=[12, 12, 12, 12],
+                radius=[14, 14, 14, 14],
                 elevation=1
             )
             empty_label = MDLabel(
-                text=f"No {self.current_filter} appointments found.",
+                text=f"No {self.current_filter} appointments.",
                 halign="center",
                 theme_text_color="Hint"
             )
@@ -89,42 +87,79 @@ class DashboardScreen(MDScreen):
             # Tuple: (id, name, phone, date, time, treatment, notes, status, patient_id)
             appt_id, p_name, p_phone, appt_date, appt_time, treatment, notes, status, p_id = appt
 
-            # Status colors
+            # Status styling
             if status == "completed":
-                status_color = (0.1, 0.7, 0.3, 1)
-                time_card_bg = (0.05, 0.5, 0.4, 1)
+                status_text = "COMPLETED"
+                status_color = (0.1, 0.65, 0.3, 1)
+                badge_bg = (0.05, 0.5, 0.4, 1)
             elif status == "cancelled":
+                status_text = "CANCELLED"
                 status_color = (0.85, 0.2, 0.2, 1)
-                time_card_bg = (0.6, 0.2, 0.2, 1)
+                badge_bg = (0.6, 0.2, 0.2, 1)
             else:
-                status_color = (0.9, 0.5, 0.1, 1)
-                time_card_bg = (0.05, 0.45, 0.55, 1)
+                status_text = "PENDING"
+                status_color = (0.1, 0.45, 0.85, 1)
+                badge_bg = (0.1, 0.45, 0.85, 1)
 
             card = MDCard(
-                orientation="horizontal",
-                padding=dp(8),
-                spacing=dp(10),
+                orientation="vertical",
+                padding=dp(10),
+                spacing=dp(6),
                 size_hint_y=None,
-                height=dp(100),
-                radius=[12, 12, 12, 12],
+                height=dp(130),
+                radius=[14, 14, 14, 14],
                 elevation=2,
-                line_color=(0.88, 0.88, 0.88, 1)
+                line_color=(0.9, 0.9, 0.9, 1)
             )
 
-            # --- 1. PROMINENT TIME BADGE CARD (LEFT) ---
+            # --- Row 1: Patient Header + Status Pill ---
+            row1 = MDBoxLayout(orientation="horizontal", spacing=dp(8), size_hint_y=None, height=dp(26))
+            avatar_icon = MDIconButton(
+                icon="account-circle",
+                theme_icon_color="Custom",
+                icon_color=(0.1, 0.45, 0.85, 1),
+                user_font_size="20sp",
+                size_hint_x=None,
+                width=dp(26),
+                pos_hint={"center_y": 0.5}
+            )
+            name_lbl = MDLabel(
+                text=p_name,
+                font_style="Subtitle1",
+                bold=True,
+                theme_text_color="Primary",
+                size_hint_x=0.75,
+                pos_hint={"center_y": 0.5}
+            )
+            status_lbl = MDLabel(
+                text=status_text,
+                font_style="Caption",
+                bold=True,
+                theme_text_color="Custom",
+                text_color=status_color,
+                size_hint_x=0.25,
+                halign="right",
+                pos_hint={"center_y": 0.5}
+            )
+            row1.add_widget(avatar_icon)
+            row1.add_widget(name_lbl)
+            row1.add_widget(status_lbl)
+
+            # --- Row 2: Time Badge & Treatment Info ---
+            row2 = MDBoxLayout(orientation="horizontal", spacing=dp(10), size_hint_y=None, height=dp(42))
+            
             time_badge = MDCard(
                 orientation="vertical",
-                padding=dp(6),
+                padding=dp(4),
                 size_hint_x=None,
-                width=dp(105),
+                width=dp(95),
                 radius=[8, 8, 8, 8],
                 elevation=0,
-                md_bg_color=time_card_bg
+                md_bg_color=badge_bg
             )
-            
             time_lbl = MDLabel(
                 text=appt_time,
-                font_style="Subtitle2",
+                font_style="Caption",
                 bold=True,
                 halign="center",
                 theme_text_color="Custom",
@@ -142,79 +177,66 @@ class DashboardScreen(MDScreen):
             time_badge.add_widget(time_lbl)
             time_badge.add_widget(date_lbl)
 
-            # --- 2. APPOINTMENT & PATIENT DETAILS (CENTER) ---
             info_box = MDBoxLayout(orientation="vertical", spacing=dp(2), pos_hint={"center_y": 0.5})
-
-            header_box = MDBoxLayout(orientation="horizontal", spacing=dp(6), size_hint_y=None, height=dp(24))
-            name_lbl = MDLabel(
-                text=p_name,
-                font_style="Subtitle1",
+            treat_lbl = MDLabel(
+                text=f"🩺 {treatment}",
+                font_style="Subtitle2",
                 bold=True,
                 theme_text_color="Primary",
-                size_hint_x=0.7
-            )
-            status_lbl = MDLabel(
-                text=status.upper(),
-                font_style="Caption",
-                bold=True,
-                theme_text_color="Custom",
-                text_color=status_color,
-                size_hint_x=0.3,
-                halign="right"
-            )
-            header_box.add_widget(name_lbl)
-            header_box.add_widget(status_lbl)
-
-            detail_lbl = MDLabel(
-                text=f"🩺 {treatment}   |   📞 {p_phone}",
-                font_style="Caption",
-                theme_text_color="Secondary",
                 size_hint_y=None,
                 height=dp(20)
             )
-
-            notes_lbl = MDLabel(
-                text=f"Notes: {notes if notes else 'None'}",
+            phone_lbl = MDLabel(
+                text=f"📞 {p_phone}  |  Notes: {notes if notes else 'None'}",
                 font_style="Overline",
                 theme_text_color="Hint",
                 size_hint_y=None,
                 height=dp(18)
             )
+            info_box.add_widget(treat_lbl)
+            info_box.add_widget(phone_lbl)
 
-            info_box.add_widget(header_box)
-            info_box.add_widget(detail_lbl)
-            info_box.add_widget(notes_lbl)
+            row2.add_widget(time_badge)
+            row2.add_widget(info_box)
 
-            # --- 3. ACTION BUTTONS (RIGHT) ---
-            btn_box = MDBoxLayout(orientation="horizontal", spacing=dp(2), size_hint_x=None, width=dp(110), pos_hint={"center_y": 0.5})
-
+            # --- Row 3: Action Buttons ---
+            row3 = MDBoxLayout(orientation="horizontal", spacing=dp(6), size_hint_y=None, height=dp(32))
+            
             if status == "pending":
-                complete_btn = MDIconButton(
-                    icon="check-circle-outline",
-                    theme_icon_color="Custom",
-                    icon_color=(0.1, 0.7, 0.3, 1),
+                complete_btn = MDRectangleFlatButton(
+                    text="✓ COMPLETE",
+                    font_style="Caption",
+                    theme_text_color="Custom",
+                    text_color=(0.1, 0.65, 0.3, 1),
+                    line_color=(0.1, 0.65, 0.3, 1),
+                    size_hint_x=0.4,
                     on_release=lambda x, aid=appt_id: self.mark_complete(aid)
                 )
-                cancel_btn = MDIconButton(
-                    icon="close-circle-outline",
-                    theme_icon_color="Custom",
-                    icon_color=(0.9, 0.5, 0.1, 1),
+                cancel_btn = MDRectangleFlatButton(
+                    text="✕ CANCEL",
+                    font_style="Caption",
+                    theme_text_color="Custom",
+                    text_color=(0.9, 0.5, 0.1, 1),
+                    line_color=(0.9, 0.5, 0.1, 1),
+                    size_hint_x=0.4,
                     on_release=lambda x, aid=appt_id: self.mark_cancelled(aid)
                 )
-                btn_box.add_widget(complete_btn)
-                btn_box.add_widget(cancel_btn)
+                row3.add_widget(complete_btn)
+                row3.add_widget(cancel_btn)
 
             delete_btn = MDIconButton(
-                icon="delete-outline",
+                icon="trash-can-outline",
                 theme_icon_color="Custom",
                 icon_color=(0.85, 0.2, 0.2, 1),
+                user_font_size="18sp",
+                size_hint_x=0.2,
                 on_release=lambda x, aid=appt_id, name=p_name: self.confirm_delete(aid, name)
             )
-            btn_box.add_widget(delete_btn)
+            row3.add_widget(delete_btn)
 
-            card.add_widget(time_badge)
-            card.add_widget(info_box)
-            card.add_widget(btn_box)
+            card.add_widget(row1)
+            card.add_widget(row2)
+            card.add_widget(row3)
 
             container.add_widget(card)
 
